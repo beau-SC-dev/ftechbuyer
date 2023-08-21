@@ -1,6 +1,6 @@
-### Friendtech Cli Tool
+# Friendtech Cli Tool
 
-Use all of this at your own risk. I haven't tested contract mode, and I wrote this in just about 1-2 hours.
+Use all of this at your own risk. I wrote this quickly. 
 
 Things to potentially change:
 
@@ -10,7 +10,7 @@ Things to potentially change:
 -   Rewrite in Rust
 -   Lmk anything else
 
-## Setup
+### Setup
 
 1. Clone the repo and run "npm install"
 
@@ -19,3 +19,7 @@ Things to potentially change:
 3. Run "npm run cli"
 
 4. Type "help" to info on commands you can run
+
+### Note
+
+Do NOT change constants.ts to use the old ShareBuyerV2 contract at 0x6113A230173f47EE1662BAc9C0c3383Fc981174C. Use the one built into the system now (0xb1675320847917F6918C461e942E4bE61388d8dD). The old one can't sell shares because it doesn't implement a payable fallback function, so any shares bought through that contract are unsellable.
