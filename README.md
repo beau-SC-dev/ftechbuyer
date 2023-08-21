@@ -14,10 +14,8 @@ Things to potentially change:
 
 1. Clone the repo and run "npm install"
 
-2. Optionally, deploy contracts/ShareBuyer.sol (if you want to use Contract mode)
+2. Create a .env file and fill it out using the template in env.template.
 
-3. Create a .env file and fill it out using the template in env.template. Leave SHARE_BUYER blank if you didn't do step 2.
+3. Run "npm run cli"
 
-4. Run "npm run cli"
-
-5. Type "help" to info on commands you can run
+4. Type "help" to info on commands you can run
