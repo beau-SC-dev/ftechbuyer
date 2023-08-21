@@ -18,6 +18,8 @@ contract ShareBuyerV2 {
     IFriendtechSharesV1 public constant friendtechSharesV1 = IFriendtechSharesV1(0xCF205808Ed36593aa40a44F10c7f7C2F67d4A4d4);
     mapping(address => mapping(address => uint256)) public sharesBalance; // subject => holder => balance
 
+    receive() external payable {}
+
     // Buy and hold shares
     function buyShares(address subject, uint256 amount) external payable {
         // Fetch price
