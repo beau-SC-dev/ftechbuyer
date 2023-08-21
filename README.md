@@ -6,6 +6,8 @@ Things to potentially change:
 
 -   Gas settings
 -   Commands
+-   Option to not run the extra price check in EOA mode (reduce latency)
+-   Rewrite in Rust
 -   Lmk anything else
 
 ## Setup
