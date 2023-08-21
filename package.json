@@ -1,0 +1,21 @@
+{
+    "name": "ftechbuyer",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "cli": "npx ts-node src/cliEntry.ts",
+        "build": "tsc -p tsconfig.build.json",
+        "prettier:write": "npx prettier --write .",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@types/node": "^20.5.1",
+        "dotenv": "^16.3.1",
+        "ethers": "^5.7.2",
+        "prettier": "^3.0.2",
+        "typescript": "^5.1.6"
+    }
+}

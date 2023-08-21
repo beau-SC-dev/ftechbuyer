@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "downlevelIteration": true,
+        "isolatedModules": true,
+        "target": "es2017",
+        "lib": ["es6", "dom"],
+        "skipLibCheck": true,
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "strict": true,
+        "declaration": true,
+        "noUnusedParameters": true,
+        "rootDir": "./",
+        "outDir": ".build"
+    },
+    "include": ["./src/**/*"]
+}
