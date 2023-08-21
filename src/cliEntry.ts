@@ -5,11 +5,10 @@ const sleepForMs = (delay: number) => new Promise((resolve) => setTimeout(resolv
 
 // Constants
 const rpcUrl = process.env.RPC_URL || "";
-const shareBuyerAddress = process.env.SHARE_BUYER_ADDRESS || "";
 const privateKey = process.env.PRIVATE_KEY || "";
 
 export const createCliInstance = async (): Promise<CliService> => {
-    const cli = new CliService(rpcUrl, shareBuyerAddress, privateKey);
+    const cli = new CliService(rpcUrl, privateKey);
     return cli;
 };
 

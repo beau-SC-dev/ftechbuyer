@@ -2,8 +2,8 @@ import * as readline from "readline";
 import { BigNumber, ethers } from "ethers";
 import { FtechResponse } from "./types";
 import { friendtechAbi } from "./abis/friendtechAbi";
-import { shareBuyerAbi } from "./abis/shareBuyerAbi";
-import { FRIENDTECH_ADDRESS, FRIENDTECH_API_USER_URL } from "./constants";
+import { shareBuyerV2Abi } from "./abis/shareBuyerV2Abi";
+import { FRIENDTECH_ADDRESS, FRIENDTECH_API_USER_URL, SHARE_BUYER_V2_ADDRESS } from "./constants";
 
 /*
 Make sure you understand each mode before placing any trades
@@ -19,16 +19,16 @@ export class CliService {
     private twitterUsernameToAddressCache: { [key: string]: string };
     public isDestroyed: boolean;
 
-    constructor(rpcUrl: string, shareBuyerAddress: string, privateKey?: string) {
+    constructor(rpcUrl: string, privateKey?: string) {
         this.provider = new ethers.providers.JsonRpcProvider(rpcUrl, 8453);
         if (privateKey) {
             this.wallet = new ethers.Wallet(privateKey, this.provider);
-            this.shareBuyer = new ethers.Contract(shareBuyerAddress, shareBuyerAbi, this.wallet);
+            this.shareBuyer = new ethers.Contract(SHARE_BUYER_V2_ADDRESS, shareBuyerV2Abi, this.wallet);
             this.friendtechSharesV1 = new ethers.Contract(FRIENDTECH_ADDRESS, friendtechAbi, this.wallet);
         } else {
             console.log("[WARNING] No private key provided, some functionality won't work");
             this.wallet = ethers.Wallet.createRandom();
-            this.shareBuyer = new ethers.Contract(shareBuyerAddress, shareBuyerAbi, this.provider);
+            this.shareBuyer = new ethers.Contract(SHARE_BUYER_V2_ADDRESS, shareBuyerV2Abi, this.provider);
             this.friendtechSharesV1 = new ethers.Contract(FRIENDTECH_ADDRESS, friendtechAbi, this.provider);
         }
 
@@ -275,10 +275,9 @@ export class CliService {
 
     private async fetchNumberSharesOwned(sharesSubject: string): Promise<number> {
         try {
-            const sharesOwned = await this.friendtechSharesV1.sharesBalance(
-                sharesSubject,
-                this.useContract ? this.shareBuyer.address : this.wallet.address
-            );
+            const sharesOwned = this.useContract
+                ? await this.shareBuyer.sharesBalance(sharesSubject, this.wallet.address)
+                : await this.friendtechSharesV1.sharesBalance(sharesSubject, this.wallet.address);
             return sharesOwned.toNumber();
         } catch (err) {
             console.error(err);
