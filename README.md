@@ -14,7 +14,7 @@ Things to potentially change:
 
 2. Optionally, deploy contracts/ShareBuyer.sol (if you want to use Contract mode)
 
-3. Create a .env file and fill it out using the template in env.template
+3. Create a .env file and fill it out using the template in env.template. Leave SHARE_BUYER blank if you didn't do step 2.
 
 4. Run "npm run cli"
 
