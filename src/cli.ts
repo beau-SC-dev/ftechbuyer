@@ -16,15 +16,18 @@ export class CliService {
     private shareBuyer: ethers.Contract;
     private friendtechSharesV1: ethers.Contract;
     private useContract: boolean;
+    private maxWeiSpendPerTxEoaMode: BigNumber;
     private twitterUsernameToAddressCache: { [key: string]: string };
     public isDestroyed: boolean;
 
-    constructor(rpcUrl: string, privateKey?: string) {
+    constructor(rpcUrl: string, maxEthSpendPerTxEoaMode: number, privateKey?: string) {
         this.provider = new ethers.providers.JsonRpcProvider(rpcUrl, 8453);
         if (privateKey) {
             this.wallet = new ethers.Wallet(privateKey, this.provider);
             this.shareBuyer = new ethers.Contract(SHARE_BUYER_V2_ADDRESS, shareBuyerV2Abi, this.wallet);
             this.friendtechSharesV1 = new ethers.Contract(FRIENDTECH_ADDRESS, friendtechAbi, this.wallet);
+
+            console.log(`INFO: Wallet address is ${this.wallet.address}`);
         } else {
             console.log("[WARNING] No private key provided, some functionality won't work");
             this.wallet = ethers.Wallet.createRandom();
@@ -37,9 +40,14 @@ export class CliService {
             output: process.stdout
         });
 
+        this.maxWeiSpendPerTxEoaMode = ethers.utils.parseEther(maxEthSpendPerTxEoaMode.toString());
         this.twitterUsernameToAddressCache = {};
         this.useContract = false;
         this.isDestroyed = false;
+
+        console.log(
+            `INFO: Max spend for EOA transactions is ${ethers.utils.formatEther(this.maxWeiSpendPerTxEoaMode)} ETH`
+        );
     }
 
     public destroySelf() {
@@ -110,16 +118,20 @@ export class CliService {
                 } else if (args[0] == "fba") {
                     // Fetch buy price for address and amount
                     const price = await this.fetchBuyPrice(args[1], args[2]);
+                    const shareString = parseInt(args[2]) == 1 ? "share" : "shares";
                     console.log(
-                        `Buy price for ${args[2]} shares of ${args[1]}: ${ethers.utils.formatEther(price)} ETH`
+                        `Buy price for ${args[2]} ${shareString} of ${args[1]}: ${ethers.utils.formatEther(price)} ETH`
                     );
                 } else if (args[0] == "fbt") {
                     // Fetch buy price for twitter username and amount
                     const addressForTwitterUsername = await this.fetchAddressForTwitterUsername(args[1]);
                     if (addressForTwitterUsername) {
                         const price = await this.fetchBuyPrice(addressForTwitterUsername, args[2]);
+                        const shareString = parseInt(args[2]) == 1 ? "share" : "shares";
                         console.log(
-                            `Buy price for ${args[2]} shares of ${args[1]}: ${ethers.utils.formatEther(price)} ETH`
+                            `Buy price for ${args[2]} ${shareString} of ${args[1]}: ${ethers.utils.formatEther(
+                                price
+                            )} ETH`
                         );
                     } else {
                         console.log(`No address found for ${args[1]}`);
@@ -127,16 +139,20 @@ export class CliService {
                 } else if (args[0] == "fsa") {
                     // Fetch sell price for address and amount
                     const price = await this.fetchSellPrice(args[1], args[2]);
+                    const shareString = parseInt(args[2]) == 1 ? "share" : "shares";
                     console.log(
-                        `Buy price for ${args[2]} shares of ${args[1]}: ${ethers.utils.formatEther(price)} ETH`
+                        `Buy price for ${args[2]} ${shareString} of ${args[1]}: ${ethers.utils.formatEther(price)} ETH`
                     );
                 } else if (args[0] == "fst") {
                     // Fetch sell price for twitter username and amount
                     const addressForTwitterUsername = await this.fetchAddressForTwitterUsername(args[1]);
                     if (addressForTwitterUsername) {
                         const price = await this.fetchSellPrice(addressForTwitterUsername, args[2]);
+                        const shareString = parseInt(args[2]) == 1 ? "share" : "shares";
                         console.log(
-                            `Sell price for ${args[2]} shares of ${args[1]}: ${ethers.utils.formatEther(price)} ETH`
+                            `Sell price for ${args[2]} ${shareString} of ${args[1]}: ${ethers.utils.formatEther(
+                                price
+                            )} ETH`
                         );
                     } else {
                         console.log(`No address found for ${args[1]}`);
@@ -155,7 +171,7 @@ export class CliService {
                     if (!this.useContract) {
                         // In EOA mode, so pre-check price
                         const price = await this.fetchBuyPrice(addressForTwitterUsername, args[2]);
-                        if (price.gt(maxTotalEthCost)) {
+                        if (price.gt(maxTotalEthCost) || price.gt(this.maxWeiSpendPerTxEoaMode)) {
                             console.log(`Buy price (${ethers.utils.formatEther(price)} ETH) is too high\n`);
                             return true;
                         } else {
@@ -172,7 +188,7 @@ export class CliService {
                     if (!this.useContract) {
                         // In EOA mode, so pre-check price
                         const price = await this.fetchBuyPrice(args[1], args[2]);
-                        if (price.gt(maxTotalEthCost)) {
+                        if (price.gt(maxTotalEthCost) || price.gt(this.maxWeiSpendPerTxEoaMode)) {
                             console.log(`Buy price (${ethers.utils.formatEther(price)} ETH) is too high\n`);
                             return true;
                         } else {
@@ -202,7 +218,10 @@ export class CliService {
 
     private async placeBuy(subject: string, amount: string, weiAmount: BigNumber) {
         try {
-            console.log(`Buying ${amount} shares of ${subject} for ${ethers.utils.formatEther(weiAmount)} ETH...`);
+            const shareString = parseInt(amount) == 1 ? "share" : "shares";
+            console.log(
+                `Buying ${amount} ${shareString} of ${subject} for ${ethers.utils.formatEther(weiAmount)} ETH...`
+            );
             const tx = this.useContract
                 ? await this.shareBuyer.buyShares(subject, amount, {
                       value: weiAmount
@@ -220,7 +239,8 @@ export class CliService {
 
     private async placeSell(subject: string, amount: string) {
         try {
-            console.log(`Selling ${amount} shares of ${subject}...`);
+            const shareString = parseInt(amount) == 1 ? "share" : "shares";
+            console.log(`Selling ${amount} ${shareString} of ${subject}...`);
             const tx = this.useContract
                 ? await this.shareBuyer.sellShares(subject, amount)
                 : await this.friendtechSharesV1.sellShares(subject, amount);
@@ -238,19 +258,51 @@ export class CliService {
                 return this.twitterUsernameToAddressCache[username];
             }
 
-            const response = await fetch(`${FRIENDTECH_API_USER_URL}?username=${username}`);
-            const data: FtechResponse = await response.json();
+            const response = await this.fetchWithRetry(`${FRIENDTECH_API_USER_URL}?username=${username}`, 3, 3000, 500);
 
-            if (data.users.length === 0 || data.users.length > 1) {
+            if (!response || response.status != 200) {
+                console.log("Friendtech API calls failed");
                 return null;
             }
 
-            this.twitterUsernameToAddressCache[username] = data.users[0].address;
-            return data.users[0].address;
+            const data: FtechResponse = await response.json();
+            if (!data || !data.users || data.users.length == 0) {
+                return null;
+            }
+
+            const matchedUser = data.users.find((user) => user.twitterUsername === username);
+            if (matchedUser) {
+                this.twitterUsernameToAddressCache[username] = matchedUser.address;
+                return matchedUser.address;
+            }
+
+            return null;
         } catch (err) {
             console.error(err);
             return null;
         }
+    }
+
+    private async fetchWithRetry(
+        url: string,
+        maxAttempts: number,
+        timeout: number,
+        delayBetweenAttempts: number
+    ): Promise<Response | null> {
+        for (let i = 0; i < maxAttempts; i++) {
+            const response = await Promise.race([
+                fetch(url),
+                new Promise<Response | null>((resolve) => setTimeout(() => resolve(null), timeout))
+            ]);
+
+            if (response && response.status === 200) {
+                return response;
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, delayBetweenAttempts));
+        }
+
+        return null;
     }
 
     private async fetchBuyPrice(sharesSubject: string, amount: string): Promise<BigNumber> {
