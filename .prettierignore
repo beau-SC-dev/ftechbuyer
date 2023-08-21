@@ -1,6 +1,6 @@
 .build
 src/contracts
-src/freindtechAbi.ts
+src/abis
 tsconfig.build.json
 tsconfig.json
 package.json
