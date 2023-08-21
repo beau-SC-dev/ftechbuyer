@@ -276,8 +276,8 @@ export class CliService {
     private async fetchNumberSharesOwned(sharesSubject: string): Promise<number> {
         try {
             const sharesOwned = await this.friendtechSharesV1.sharesBalance(
-                this.useContract ? this.shareBuyer.address : this.wallet.address,
-                sharesSubject
+                sharesSubject,
+                this.useContract ? this.shareBuyer.address : this.wallet.address
             );
             return sharesOwned.toNumber();
         } catch (err) {
