@@ -6,9 +6,10 @@ const sleepForMs = (delay: number) => new Promise((resolve) => setTimeout(resolv
 // Constants
 const rpcUrl = process.env.RPC_URL || "";
 const privateKey = process.env.PRIVATE_KEY || "";
+const maxEthSpendPerTxEoaMode: number = Number(process.env.MAX_ETH_SPEND_PER_TX_EOA_MODE) || 0.1;
 
 export const createCliInstance = async (): Promise<CliService> => {
-    const cli = new CliService(rpcUrl, privateKey);
+    const cli = new CliService(rpcUrl, maxEthSpendPerTxEoaMode, privateKey);
     return cli;
 };
 
