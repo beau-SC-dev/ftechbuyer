@@ -75,7 +75,7 @@ export class CliService {
             const len = args.length;
             if (len == 1) {
                 if (args[0] == "mode") {
-                    this.useContract = !this.useContract;
+                    this.toggleMode();
                 } else if (args[0] == "h" || args[0] == "help") {
                     // Print commands
                     this.printCommands();
@@ -83,8 +83,6 @@ export class CliService {
                     // Exit
                     this.destroySelf();
                     process.exit(0);
-                } else if (args[0] == "mode") {
-                    this.useContract = !this.useContract;
                 } else if (args[0] == "w") {
                     // Output wallet address
                     console.log(`Wallet address: ${this.wallet.address}`);
@@ -216,6 +214,12 @@ export class CliService {
         return true;
     }
 
+    public toggleMode() {
+        this.useContract = !this.useContract;
+        const mode = this.useContract ? "Contract" : "EOA";
+        console.log(`Switched to ${mode} mode`);
+    }
+
     private async placeBuy(subject: string, amount: string, weiAmount: BigNumber) {
         try {
             const shareString = parseInt(amount) == 1 ? "share" : "shares";
@@ -232,6 +236,25 @@ export class CliService {
             console.log(`Buy tx: ${tx.hash}`);
             await tx.wait();
             console.log(`Buy tx confirmed`);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    public async placeBuyLightweight(subject: string, amount: number, weiAmount: BigNumber) {
+        try {
+            const shareString = amount == 1 ? "share" : "shares";
+            console.log(
+                `Buying ${amount} ${shareString} of ${subject} for ${ethers.utils.formatEther(weiAmount)} ETH...`
+            );
+            const tx = this.useContract
+                ? await this.shareBuyer.buyShares(subject, amount, {
+                      value: weiAmount
+                  })
+                : await this.friendtechSharesV1.buyShares(subject, amount, {
+                      value: weiAmount
+                  });
+            console.log(`Buy tx: ${tx.hash}`);
         } catch (err) {
             console.error(err);
         }
